@@ -7,3 +7,4 @@ test/
 .github/
 .jshintrc
 .travis.yml
+.idea
