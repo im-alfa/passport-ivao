@@ -1,24 +1,18 @@
-# passport-openidconnect
+# passport-ivao
 
 [Passport](https://www.passportjs.org/) strategy for authenticating
-with [OpenID Connect](https://openid.net/connect/).
+with IVAO login.
 
-This module lets you authenticate using OpenID Connect in your Node.js
+This module is a modification of [passport-openidconnect](https://github.com/jaredhanson/passport-openidconnect). It lets you authenticate using IVAO login in your Node.js
 applications.  By plugging into Passport, OpenID Connect-based sign in can be
 easily and unobtrusively integrated into any application or framework that
 supports [Connect](https://github.com/senchalabs/connect#readme)-style
 middleware, including [Express](https://expressjs.com/).
 
-<div align="center">
-
-:heart: [Sponsors](https://www.passportjs.org/sponsors/?utm_source=github&utm_medium=referral&utm_campaign=passport-openidconnect&utm_content=nav-sponsors)
-
-</div>
-
 ## Install
 
 ```sh
-$ npm install passport-openidconnect
+$ npm install passport-ivao
 ```
 
 ## Usage
@@ -49,58 +43,24 @@ use any database of its choosing.  The example below illustrates usage of a SQL
 database.
 
 ```js
-var OpenIDConnectStrategy = require('passport-openidconnect');
+var OpenIDConnectStrategy = require('passport-ivao');
 
 passport.use(new OpenIDConnectStrategy({
-    issuer: 'https://server.example.com',
-    authorizationURL: 'https://server.example.com/authorize',
-    tokenURL: 'https://server.example.com/token',
-    userInfoURL: 'https://server.example.com/userinfo',
     clientID: process.env['CLIENT_ID'],
     clientSecret: process.env['CLIENT_SECRET'],
     callbackURL: 'https://client.example.org/cb'
   },
-  function verify(issuer, profile, cb) {
-    db.get('SELECT * FROM federated_credentials WHERE provider = ? AND subject = ?', [
-      issuer,
-      profile.id
-    ], function(err, cred) {
-      if (err) { return cb(err); }
-      
-      if (!cred) {
-        // The account at the OpenID Provider (OP) has not logged in to this app
-        // before.  Create a new user account and associate it with the account
-        // at the OP.
-        db.run('INSERT INTO users (name) VALUES (?)', [
-          profile.displayName
-        ], function(err) {
-          if (err) { return cb(err); }
-          
-          var id = this.lastID;
-          db.run('INSERT INTO federated_credentials (user_id, provider, subject) VALUES (?, ?, ?)', [
-            id,
-            issuer,
-            profile.id
-          ], function(err) {
-            if (err) { return cb(err); }
-            var user = {
-              id: id,
-              name: profile.displayName
-            };
-            return cb(null, user);
-          });
-        });
-      } else {
-        // The account at the OpenID Provider (OP) has previously logged in to
-        // the app.  Get the user account associated with the account at the OP
-        // and log the user in.
-        db.get('SELECT * FROM users WHERE id = ?', [ cred.user_id ], function(err, row) {
-          if (err) { return cb(err); }
-          if (!row) { return cb(null, false); }
-          return cb(null, row);
-        });
-      }
-    });
+  function verify(
+                  issuer,
+                  uiProfile,
+                  idProfile,
+                  context,
+                  idToken,
+                  accessToken,
+                  refreshToken,
+                  params,
+                  verified) {
+    // TODO: Implement user lookup logic
   }
 ));
 ```
@@ -139,8 +99,9 @@ app.get('/cb',
   started, a [tutorial](https://www.passportjs.org/tutorials/auth0/) is
   available.
 
+## Credits
+Jared Hanson <[@jaredhanson](https://github.com/jaredhanson)>: for the original OpenID Connect implementation
+
 ## License
 
 [The MIT License](https://opensource.org/licenses/MIT)
-
-Copyright (c) 2011-2022 Jared Hanson <[https://www.jaredhanson.me/](https://www.jaredhanson.me/)>
